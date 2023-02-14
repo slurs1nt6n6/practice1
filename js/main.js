@@ -1,5 +1,4 @@
-
- Vue.component('product', {
+Vue.component('product', {
     template: `
     <div class="product">
 
@@ -10,10 +9,12 @@
     </div>
 
     <div class="product-info">
+    
        <h1>{{ title }}</h1>  
        <p>{{ description }}</p>
-
-   <a href="https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks">{{link}}</a>
+       <p>Shipping: {{ shipping }}</p>
+   
+       <a href="https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks">{{link}}</a>
 
         <p v-if="inventory > 10">In stock</p>
 
@@ -41,11 +42,7 @@
        :style="{ backgroundColor:variant.variantColor }"
        @mouseover="updateProduct(index)">
        </div>
-       </div>
-
-        <div class="cart">
-           <p>Cart({{ cart }})</p>
-        </div>
+       
 
         <button v-on:click="addToCart"
         :disabled="!inStock"
@@ -55,7 +52,11 @@
          <button v-on:click="cart -= 1">Delete from cart</button>
         
 
+        <div class="cart">
+           <p>Cart({{ cart }})</p>
+        </div>
 
+</div>
     </div>
 
 </div> 
@@ -116,8 +117,30 @@
         },
         inStock(){
             return this.variants[this.selectedVariant].variantQuantity
-        }    }
- })
+        },
+        shipping() {
+            if (this.premium) {
+                return "Free";
+            } else {
+                return 2.99
+            }
+         }    },
+        props: {
+            premium: {
+                type: Boolean,
+                required: true
+            }
+        },
+              })
+    Vue.component('product-details',{
+        template:`
+        {{detail}}`,
+        data(){
+        return{
+            details: ['80% cotton', '20% polyester', 'Gender-neutral'],
+        }
+        }
+    })
  
  let app = new Vue({
     el: '#app',
