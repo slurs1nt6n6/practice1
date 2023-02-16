@@ -191,22 +191,21 @@ Vue.component('product', {
        @mouseover="updateProduct(index)">
        </div>
        
-
+      
         <button v-on:click="addToCart"
         :disabled="!inStock"
         :class="{ disabledButton: !inStock }">    
        Add to cart</button>
-
+          <div class="delete">
          <button v-on:click="deleteToCart">Delete from cart</button>
-         <div>
-
+        </div>
+          <div>
+         
         <product-tabs :reviews="reviews" :premium="premium"></product-tabs>
 
     </div>
     </div>
-    </div>
-</div> 
-  `,
+    </div>`,
     data() {
         return {
             product: "Socks",
@@ -287,7 +286,9 @@ Vue.component('product', {
 })
 Vue.component('product-details', {
     template: `
-        {{detail}}`,
+      <ul>
+      <li v-for="detail in details"> {{ detail }}</li>  <!-- v-for - перебирает массив -->
+      </ul>`,
     data() {
         return {
             details: ['80% cotton', '20% polyester', 'Gender-neutral'],
