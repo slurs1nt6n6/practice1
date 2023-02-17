@@ -28,35 +28,240 @@ Vue.component('product-tabs', {
        <product-review></product-review>
        </div>
        <div v-show="selectedTab === 'Shipping'">
-       <p>Shipping: free{{ shipping }}</p>
+       <p>Shipping: {{ shipping }}</p>
        </div>
 
        <div v-show="selectedTab === 'Details'">
        <product-details/>
+       <div
+       class="color-box"
+       v-for="(variant, index) in variants"
+       :key="variant.variantId"
+       :style="{ backgroundColor:variant.variantColor }"
+       @mouseover="updateProduct(index)">
+       </div>
        </div>
      </div>
   `,
     data() {
         return {
             tabs: ['Reviews', 'Make a Review','Shipping','Details'],
-            selectedTab: 'Reviews'
+            selectedTab: 'Reviews',
+            selectedVariant:0
+,
+            variants: [
+                {
+                    variantId: 2234,
+                    variantColor: 'green',
+                    variantImage: ".//img/vmSocks-green-onWhite.jpg",
+                    variantQuantity: 100
+
+
+                },
+                {
+                    variantId: 2235,
+                    variantColor: 'blue',
+                    variantImage: ".//img/vmSocks-blue-onWhite.jpg",
+                    variantQuantity: 0
+
+                }
+            ],
         }
     },
     props: {
+
         reviews: {
             type: Array,
-            required: false
+            required: false,
+            },
+
+        premium: {
+            type: Boolean,
+            required: true
+        },
+        updateProduct(index) {
+            this.selectedVariant = index;
+            console.log(index);
+        },
+    },
+    mounted() {
+        eventBus.$on('review-submitted', productReview => {
+            this.reviews.push(productReview)
+        })
+     },
+     
+    computed: {
+
+        shipping() {
+            if (this.selectedVariant == 0) {
+                return 200;
+            } else {
+                return 100;
+            }
+        },
+        image() {
+            return this.variants[this.selectedVariant].variantImage;
+        },
+        
+        inStock() {
+            return this.variants[this.selectedVariant].variantQuantity
+        },
+    }
+
+})
+
+Vue.component('product', {
+    props: {
+        premium: {
+            type: Boolean,
+            required: true
         }
     },
-    premium: {
-        type: Boolean,
-        required: true,
+    template: `
+    <div class="product">
+
+    <div class="product-image">
+
+       <img v-bind:src="image" v-bind:alt="altText" />
+
+    </div>
+
+    <div class="product-info">
+    <p>Shipping:{{ shipping }}</p>
+
+       <h1>{{ title }}</h1>  
+       <p>{{ description }}</p>
+        
+       <a href="https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks">{{link}}</a>
+
+        <p v-if="inventory > 10">In stock</p>
+
+       <p v-else-if="inventory <= 10 && inventory > 0">Almost sold out!</p>
+           
+       <p :class="{ outOfStock: !inStock }"
+
+        v-else 
+           >    Out of stock</p>
+
+       <span><p>{{OnSale}}</p>  </span>
+
+    
+            
+       <ul>
+           <li v-for="size in sizes">{{ size }}</li>
+       </ul>
+              
+       <div
+       class="color-box"
+       v-for="(variant, index) in variants"
+       :key="variant.variantId"
+       :style="{ backgroundColor:variant.variantColor }"
+       @mouseover="updateProduct(index)">
+       </div>
+       
+      
+        <button v-on:click="addToCart"
+        :disabled="!inStock"
+        :class="{ disabledButton: !inStock }">    
+       Add to cart</button>
+          <div class="delete">
+         <button v-on:click="deleteToCart">Delete from cart</button>
+        </div>
+          <div>
+         
+        <product-tabs :reviews="reviews" :premium="premium"></product-tabs>
+
+    </div>
+    </div>
+    </div>`,
+    data() {
+        return {
+            product: "Socks",
+            brand: "Vue Mastery",
+            description: "A pair of warm, fuzzy socks",
+            selectedVariant: 0,
+            altText: "A pair of socks",
+            link: "More products like this",
+            inStock: true,
+            inventory: 0,
+            onSale: "сейчас на распродаже",
+            details: ['80% cotton', '20% polyester', 'Gender-neutral'],
+            sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
+            reviews: [],
+            variants: [
+                {
+                    variantId: 2234,
+                    variantColor: 'green',
+                    variantImage: ".//img/vmSocks-green-onWhite.jpg",
+                    variantQuantity: 100
+
+
+                },
+                {
+                    variantId: 2235,
+                    variantColor: 'blue',
+                    variantImage: ".//img/vmSocks-blue-onWhite.jpg",
+                    variantQuantity: 0
+
+                }
+            ],
+           
+            cart: 0,
+        }
     },
-    shipping() {
-        if (this.premium) {
-            return "free";
-        } else {
-            return 2.99
+    methods: {
+        addToCart() {
+            this.$emit('add-to-cart',
+                this.variants[this.selectedVariant].variantId)
+
+        },
+        deleteToCart() {
+            this.$emit('delete-from-cart',
+                this.variants[this.selectedVariant].variantId)
+
+        },
+        updateProduct(index) {
+            this.selectedVariant = index;
+            console.log(index);
+        },
+    },
+    mounted() {
+        eventBus.$on('review-submitted', productReview => {
+            this.reviews.push(productReview)
+        })
+     },
+     
+    computed: {
+        title() {
+            return this.brand + ' ' + this.product;
+        },
+        OnSale() {
+            return this.brand + ' ' + this.product + ' ' + this.onSale;
+        },
+        image() {
+            return this.variants[this.selectedVariant].variantImage;
+        },
+        
+        inStock() {
+            return this.variants[this.selectedVariant].variantQuantity
+        },
+        shipping() {
+            if (this.selectedVariant == 0) {
+                return 200;
+            } else {
+                return 100
+            }
+        }
+    },
+})
+Vue.component('product-details', {
+    template: `
+      <ul>
+      <li v-for="detail in details"> {{ detail }}</li>  <!-- v-for - перебирает массив -->
+      </ul>`,
+    data() {
+        return {
+            details: ['80% cotton', '20% polyester', 'Gender-neutral'],
         }
     }
 })
@@ -141,161 +346,6 @@ Vue.component('product-review', {
         }
     }
 })
-
-
-Vue.component('product', {
-    props: {
-        premium: {
-            type: Boolean,
-            required: true
-        }
-    },
-    template: `
-    <div class="product">
-
-    <div class="product-image">
-
-       <img v-bind:src="image" v-bind:alt="altText" />
-
-    </div>
-
-    <div class="product-info">
-    
-       <h1>{{ title }}</h1>  
-       <p>{{ description }}</p>
-        
-       <a href="https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks">{{link}}</a>
-
-        <p v-if="inventory > 10">In stock</p>
-
-       <p v-else-if="inventory <= 10 && inventory > 0">Almost sold out!</p>
-           
-       <p :class="{ outOfStock: !inStock }"
-
-        v-else 
-           >    Out of stock</p>
-
-       <span><p>{{OnSale}}</p>  </span>
-
-    
-            
-       <ul>
-           <li v-for="size in sizes">{{ size }}</li>
-       </ul>
-              
-       <div
-       class="color-box"
-       v-for="(variant, index) in variants"
-       :key="variant.variantId"
-       :style="{ backgroundColor:variant.variantColor }"
-       @mouseover="updateProduct(index)">
-       </div>
-       
-      
-        <button v-on:click="addToCart"
-        :disabled="!inStock"
-        :class="{ disabledButton: !inStock }">    
-       Add to cart</button>
-          <div class="delete">
-         <button v-on:click="deleteToCart">Delete from cart</button>
-        </div>
-          <div>
-         
-        <product-tabs :reviews="reviews" :premium="premium"></product-tabs>
-
-    </div>
-    </div>
-    </div>`,
-    data() {
-        return {
-            product: "Socks",
-            brand: "Vue Mastery",
-            description: "A pair of warm, fuzzy socks",
-            selectedVariant: 0,
-            altText: "A pair of socks",
-            link: "More products like this",
-            inStock: true,
-            inventory: 0,
-            onSale: "сейчас на распродаже",
-            details: ['80% cotton', '20% polyester', 'Gender-neutral'],
-            sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
-            reviews: [],
-            variants: [
-                {
-                    variantId: 2234,
-                    variantColor: 'green',
-                    variantImage: ".//img/vmSocks-green-onWhite.jpg",
-                    variantQuantity: 100
-
-
-                },
-                {
-                    variantId: 2235,
-                    variantColor: 'blue',
-                    variantImage: ".//img/vmSocks-blue-onWhite.jpg",
-                    variantQuantity: 0
-
-                }
-            ],
-            cart: 0,
-        }
-    },
-    methods: {
-        addToCart() {
-            this.$emit('add-to-cart',
-                this.variants[this.selectedVariant].variantId)
-
-        },
-        deleteToCart() {
-            this.$emit('delete-from-cart',
-                this.variants[this.selectedVariant].variantId)
-
-        },
-        updateProduct(index) {
-            this.selectedVariant = index;
-            console.log(index);
-        },
-    },
-    mounted() {
-        eventBus.$on('review-submitted', productReview => {
-            this.reviews.push(productReview)
-        })
-     },
-     
-    computed: {
-        title() {
-            return this.brand + ' ' + this.product;
-        },
-        OnSale() {
-            return this.brand + ' ' + this.product + ' ' + this.onSale;
-        },
-        image() {
-            return this.variants[this.selectedVariant].variantImage;
-        },
-        inStock() {
-            return this.variants[this.selectedVariant].variantQuantity
-        },
-        shipping() {
-            if (this.premium) {
-                return "Free";
-            } else {
-                return 2.99
-            }
-        }
-    },
-})
-Vue.component('product-details', {
-    template: `
-      <ul>
-      <li v-for="detail in details"> {{ detail }}</li>  <!-- v-for - перебирает массив -->
-      </ul>`,
-    data() {
-        return {
-            details: ['80% cotton', '20% polyester', 'Gender-neutral'],
-        }
-    }
-})
-
 
 
 
