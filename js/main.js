@@ -2,6 +2,7 @@ let eventBus = new Vue()
 
 
 Vue.component('product-tabs', {
+
     template: `
     <div>   
        <ul>
@@ -33,39 +34,30 @@ Vue.component('product-tabs', {
 
        <div v-show="selectedTab === 'Details'">
        <product-details/>
+       </div>
        <div
        class="color-box"
        v-for="(variant, index) in variants"
        :key="variant.variantId"
        :style="{ backgroundColor:variant.variantColor }"
        @mouseover="updateProduct(index)">
+       
        </div>
-       </div>
+       
      </div>
+       <product 
+        
+            :reviews="reviews"
+            :premium="premium"
+        >       
+        
+        </product>
   `,
     data() {
         return {
             tabs: ['Reviews', 'Make a Review','Shipping','Details'],
             selectedTab: 'Reviews',
-            selectedVariant:0
-,
-            variants: [
-                {
-                    variantId: 2234,
-                    variantColor: 'green',
-                    variantImage: ".//img/vmSocks-green-onWhite.jpg",
-                    variantQuantity: 100
-
-
-                },
-                {
-                    variantId: 2235,
-                    variantColor: 'blue',
-                    variantImage: ".//img/vmSocks-blue-onWhite.jpg",
-                    variantQuantity: 0
-
-                }
-            ],
+            selectedVariant:0,
         }
     },
     props: {
@@ -79,32 +71,23 @@ Vue.component('product-tabs', {
             type: Boolean,
             required: true
         },
-        updateProduct(index) {
-            this.selectedVariant = index;
-            console.log(index);
-        },
     },
-    mounted() {
-        eventBus.$on('review-submitted', productReview => {
-            this.reviews.push(productReview)
-        })
-     },
-     
+
+    methods:{
+        shipping() {
+            eventBus.$emit('Shipping',
+                this.variants[this.selectedVariant].variantId)
+      }
+    },
     computed: {
 
         shipping() {
-            if (this.selectedVariant == 0) {
+            if (this.selectedVariant) {
                 return 200;
             } else {
                 return 100;
             }
-        },
-        image() {
-            return this.variants[this.selectedVariant].variantImage;
-        },
-        
-        inStock() {
-            return this.variants[this.selectedVariant].variantQuantity
+
         },
     }
 
@@ -127,7 +110,6 @@ Vue.component('product', {
     </div>
 
     <div class="product-info">
-    <p>Shipping:{{ shipping }}</p>
 
        <h1>{{ title }}</h1>  
        <p>{{ description }}</p>
@@ -169,8 +151,13 @@ Vue.component('product', {
         </div>
           <div>
          
-        <product-tabs :reviews="reviews" :premium="premium"></product-tabs>
-
+  <product-tabs 
+        
+            :reviews="reviews"
+            :premium="premium"
+        >       
+        
+        </product-tabs>
     </div>
     </div>
     </div>`,
@@ -205,7 +192,7 @@ Vue.component('product', {
 
                 }
             ],
-           
+
             cart: 0,
         }
     },
@@ -230,7 +217,7 @@ Vue.component('product', {
             this.reviews.push(productReview)
         })
      },
-     
+
     computed: {
         title() {
             return this.brand + ' ' + this.product;
@@ -241,12 +228,12 @@ Vue.component('product', {
         image() {
             return this.variants[this.selectedVariant].variantImage;
         },
-        
+
         inStock() {
             return this.variants[this.selectedVariant].variantQuantity
         },
         shipping() {
-            if (this.selectedVariant == 0) {
+            if (this.selectedVariant ) {
                 return 200;
             } else {
                 return 100
@@ -349,7 +336,7 @@ Vue.component('product-review', {
 
 
 
-let app = new Vue({
+new Vue({
     el: '#app',
     data: {
         premium: true,
