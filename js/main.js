@@ -113,7 +113,7 @@ Vue.component('product', {
 
        <h1>{{ title }}</h1>  
        <p>{{ description }}</p>
-        
+        <p>{{shipping}}</p>
        <a href="https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks">{{link}}</a>
 
         <p v-if="inventory > 10">In stock</p>
@@ -188,7 +188,7 @@ Vue.component('product', {
                     variantId: 2235,
                     variantColor: 'blue',
                     variantImage: ".//img/vmSocks-blue-onWhite.jpg",
-                    variantQuantity: 0
+                    variantQuantity: 200
 
                 }
             ],
@@ -199,7 +199,7 @@ Vue.component('product', {
     methods: {
         addToCart() {
             this.$emit('add-to-cart',
-                this.variants[this.selectedVariant].variantId)
+                this.variants[this.selectedVariant].variantQuantity)
 
         },
         deleteToCart() {
@@ -340,15 +340,25 @@ new Vue({
     el: '#app',
     data: {
         premium: true,
-        cart: []
+        cart: [],
+
     },
     methods: {
-        updateCart(id) {
-            this.cart.push(id);
+        updateCart(Quality) {
+            this.cart.push(Quality);
+            console.log(sumOfNumbers)
         },
 
         deleteCart(id) {
             this.cart.pop(id);
         }
+
+    },
+    computed:{
+        sumOfNumbers() {
+            const sumOfNumbers = this.cart.reduce((acc, number) => acc + number, 0);
+            return sumOfNumbers
+        }
     }
 })
+
